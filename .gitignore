@@ -1,0 +1,13 @@
+# Ignore the virtual environment folder and its contents
+myenv/
+
+# Other common Python-related files and directories to ignore
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+*.pyc/
+*.egg-info/
+dist/
+build/
+/.vscode/
