@@ -11,7 +11,7 @@ SOURCES_TABLE_NAME = "Sources"
 PRICES_TABLE_NAME = "Prices"
 
 
-class Manager:
+class DatabaseManager:
     conn: sqlite3.Connection
 
     def __init__(self):
@@ -191,6 +191,10 @@ class Manager:
                 if product_info.price < current_price_for_product.price:
                     logging.info("Price found is lower than currently stored")
                     self.add_price_for_product(product_id, product_info.price, scrape_url, date_for_scrape)
+                elif product_info.price == current_price_for_product.price:
+                    logging.info("Price found is the same as currently stored")
+                else:
+                    logging.info("Price found is higher than what is currently stored")
             else:
                 logging.info("New price added to database for day")
                 self.add_price_for_product(product_id, product_info.price, scrape_url, date_for_scrape)
@@ -208,7 +212,6 @@ class Manager:
                     if product_info is not None:
                         self._use_price_from_scrape(product_id, url, product_info, date_for_scrape)
 
-
     def __del__(self):
         logging.info("Closing connection to database")
         self.conn.close()
@@ -216,5 +219,5 @@ class Manager:
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
-    database = Manager()
+    database = DatabaseManager()
     database.scrape_sites()

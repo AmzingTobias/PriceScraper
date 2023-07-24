@@ -18,9 +18,7 @@ class Config:
         try:
             with open(config_path, "r") as json_file:
                 self.raw_json = json.load(json_file)
-                logging.info(f"Config file loaded: {self.raw_json}")
         except FileNotFoundError:
-            logging.warning(f"Config file doesn't exist, creating a default config")
             self.create_config_file()
 
         # Check what values exist from the config file and if they can be loaded in
@@ -30,7 +28,6 @@ class Config:
         if LOGGING_LEVEL_KEY in self.raw_json:
             self.logging_level = self.raw_json[LOGGING_LEVEL_KEY]
 
-        logging.debug(f"Config loaded: {self.raw_json}")
 
     def create_config_file(self) -> None:
         with open(CONFIG_FILE_PATH, "w") as json_file:

@@ -1,7 +1,14 @@
 import logging
-from manager import Manager
+from database_manager import DatabaseManager
+from config.config import Config
+import time
 
 if __name__ == "__main__":
+    config_manager = Config("config/config.json")
     logging.basicConfig(level=logging.INFO)
-    db = Manager()
-    db.scrape_sites()
+    logging.info("Scraping started")
+    while True:
+        db = DatabaseManager()
+        db.scrape_sites()
+        logging.info(f"Waiting {config_manager.scrape_interval / 60.0} minutes before scraping again")
+        time.sleep(config_manager.scrape_interval)
