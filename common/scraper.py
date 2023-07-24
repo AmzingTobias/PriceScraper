@@ -12,6 +12,7 @@ STATUS_OK = 200
 
 class Scraper:
     url: str
+
     def __init__(self, url: str):
         self.url = url
 
