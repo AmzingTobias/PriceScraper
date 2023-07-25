@@ -1,6 +1,7 @@
+import datetime
 import logging
 import sqlite3
-import datetime
+
 from common.product_info import PriceInfo, ProductInfo
 from common.scraper import validate_url
 from scrapers.cdkeys import CDKEYS_HOST_NAME, CDKeys

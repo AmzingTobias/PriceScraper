@@ -1,12 +1,14 @@
-import datetime
+import json
+import json
 import logging
 import re
+
 import requests
+from bs4 import BeautifulSoup
+
+from common.product_info import ProductInfo
 from common.scraper import validate_url, HEADERS, STATUS_OK, log_invalid_request, \
     log_url_request, log_price_invalid, log_price_found_from_request, Scraper, log_product_availability_from_request
-from bs4 import BeautifulSoup
-import json
-from common.product_info import ProductInfo
 
 # Host name for the CDkeys website
 CDKEYS_HOST_NAME = "www.cdkeys.com"
@@ -73,36 +75,6 @@ class CDKeys(Scraper):
         return None
 
 
-# def scrape_cdkeys(product_id: int, cdkeys_url: str) -> bool:
-#     date_for_scrape = datetime.date.today()
-#     scraper = CDKeys(cdkeys_url)
-#     product_info = scraper.get_product_info()
-#     new_low_found_for_day = False
-#     if product_info.availability:
-#         db = Manager()
-#         current_price_for_product = db.get_price_for_product_with_date(product_id, date_for_scrape)
-#         if current_price_for_product is not None:
-#             if product_info.price < current_price_for_product.price:
-#                 logging.info("Price found is lower than currently stored")
-#                 new_low_found_for_day = db.add_price_for_product(product_id, product_info.price,
-#                                                                  cdkeys_url, date_for_scrape)
-#         else:
-#             logging.info("New price added to database for day")
-#             new_low_found_for_day = db.add_price_for_product(product_id, product_info.price,
-#                                                              cdkeys_url, date_for_scrape)
-#     return new_low_found_for_day
-
-
-
 if __name__ == '__main__':
-    # logging.error("This file should not be called manually")
     logging.basicConfig(level=logging.INFO)
-    #
-    # product_list = ["https://www.cdkeys.com/pc/star-wars-jedi-survivor-pc-origin-en",
-    #                 "https://www.cdkeys.com/pc/starfield-premium-edition-pc-steam",
-    #                 "https://www.cdkeys.com/pc/f1-manager-2023-pc-steam",
-    #                 "https://www.cdkeys.com/pc/ratchet-and-clank-rift-apart-pc-steam",
-    #                 "https://www.cdkeys.com/cyberpunk-2077-phantom-liberty-pc-dlc-gog"]
-    # for product in product_list:
-    #     scraper = CDKeys(product)
-    #     product_info = scraper.get_product_info()
+    logging.error("This file should not be called manually")
