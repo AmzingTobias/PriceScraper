@@ -2,7 +2,7 @@ import datetime
 import logging
 import sqlite3
 
-from common.product_info import PriceInfo, ProductInfo
+from common.product_info import PriceInfo, ProductInfo, date_to_string, string_to_date
 from common.scraper import validate_url
 from scrapers.cdkeys import CDKEYS_HOST_NAME, CDKeys
 
@@ -118,7 +118,7 @@ class DatabaseManager:
         cur.execute(sql_statement, (product_id,))
         price_data = cur.fetchall()
         cur.close()
-        price_info_converted = [PriceInfo(price[0], price[1], datetime.datetime.strptime(price[2], "%d-%m-%Y").date())
+        price_info_converted = [PriceInfo(price[0], price[1], string_to_date(price[2]))
                                 for price in price_data]
         price_info_converted_sorted = sorted(price_info_converted, key=lambda x: x.date)
         logging.info(f"Total prices found for product {product_id}: {len(price_info_converted_sorted)}")
@@ -126,7 +126,7 @@ class DatabaseManager:
 
     def get_price_for_product_with_date(self, product_id: int, date_for_search: datetime.date) -> PriceInfo | None:
         # Convert the date into a string for database lookup
-        date_string_for_lookup = date_for_search.strftime("%d-%m-%Y")
+        date_string_for_lookup = date_to_string(date_for_search)
         cur = self.conn.cursor()
         sql_statement = f"SELECT {PRICES_TABLE_NAME}.Price, {SOURCES_TABLE_NAME}.Site_Link, {PRICES_TABLE_NAME}.Date " \
                         f"FROM {PRICES_TABLE_NAME} " \
@@ -136,14 +136,14 @@ class DatabaseManager:
         price_data = cur.fetchone()
         cur.close()
         if price_data is not None:
-            return PriceInfo(price_data[0], price_data[1], datetime.datetime.strptime(price_data[2], "%d-%m-%Y").date())
+            return PriceInfo(price_data[0], price_data[1], string_to_date(price_data[2]))
         else:
             return None
 
     def add_price_for_product(self, product_id: int, price: float, source_url: str,
                               date: datetime.date = datetime.date.today()) -> bool:
         cur = self.conn.cursor()
-        date_string_for_lookup = date.strftime("%d-%m-%Y")
+        date_string_for_lookup = date_to_string(date)
         sql_update_statement = f"UPDATE {PRICES_TABLE_NAME} " \
                                f"SET Price = ?, Site_Id = " \
                                f"(SELECT {SOURCES_TABLE_NAME}.Id FROM {SOURCES_TABLE_NAME} " \
