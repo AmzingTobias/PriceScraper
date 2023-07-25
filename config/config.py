@@ -8,15 +8,33 @@ DISCORD_WEBHOOK_KEY = "discord-webhook-url"
 
 
 class Config:
+    """
+    Loads in a config file and stores the values found as attributes
+
+    Attributes:
+        scrape_interval (int): The amount of time in seconds that should take place between each scrape
+        logging_level (int): The logging level to use
+        discord_webhook_url (str): A Discord webhook URL that will be sent notifications
+        config_filepath (str): The filepath to the config
+    """
     scrape_interval: int
     logging_level: int
     discord_webhook_url: str
+    config_filepath: str
 
     def __init__(self, config_path=CONFIG_FILE_PATH):
+        """
+        :param config_path: The path to the config file
+        """
+
+        self.config_filepath = config_path
+
+        # Default values for the config file
         self.scrape_interval = 0
         self.logging_level = logging.WARNING
         self.discord_webhook_url = ""
         self.raw_json = dict()
+
         try:
             with open(config_path, "r") as json_file:
                 self.raw_json = json.load(json_file)
@@ -34,7 +52,11 @@ class Config:
             self.discord_webhook_url = self.raw_json[DISCORD_WEBHOOK_KEY]
 
     def create_config_file(self) -> None:
-        with open(CONFIG_FILE_PATH, "w") as json_file:
+        """
+        Creates the config file with the default values
+        """
+        with open(self.config_filepath, "w") as json_file:
+            # Create the config file with the default values
             self.raw_json[SCRAPER_INTERVAL_KEY] = self.scrape_interval
             self.raw_json[LOGGING_LEVEL_KEY] = self.logging_level
             self.raw_json[DISCORD_WEBHOOK_KEY] = self.discord_webhook_url
@@ -43,5 +65,9 @@ class Config:
 
 
 if __name__ == "__main__":
-    c = Config()
-    pass
+    print(Config.__doc__)
+    for name, method in Config.__dict__.items():
+        if callable(method) and hasattr(method, '__doc__'):
+            docstring = method.__doc__
+            if docstring:
+                print(f"Method '{name}':\n{docstring.strip()}\n")
