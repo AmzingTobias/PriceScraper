@@ -6,36 +6,39 @@ from common.product_info import PriceInfo, ProductInfo, date_to_string, string_t
 from common.scraper import validate_url
 from scrapers.cdkeys import CDKEYS_HOST_NAME, CDKeys
 
-DATABASE_NAME = "data.db"
+DATABASE_NAME = "products.db"
 PRODUCTS_TABLE_NAME = "Products"
 SOURCES_TABLE_NAME = "Sources"
 PRICES_TABLE_NAME = "Prices"
 
 
-class DatabaseManager:
+class ProductDatabaseManager:
     """
-    The Database manager that handles making requests to the SQL database
+    The Database manager for products that handles making requests to the SQL database
     Attributes:
         conn (sqlite3.Connection): The connection to the database
     """
     conn: sqlite3.Connection
 
-    def __init__(self):
+    def __init__(self, database_folder_path: str = ""):
+        """
+        :param database_folder_path: The folder location of the database files, should end with a slash
+        """
         # Connect to the database
-        self.conn = sqlite3.connect(DATABASE_NAME)
+        self.conn = sqlite3.connect(database_folder_path + DATABASE_NAME)
         # Ensure foreign key checks exist
         self.conn.execute('PRAGMA foreign_keys = ON')
-        logging.info(f"Connection established to {DATABASE_NAME}")
-        self.create_tables()
+        logging.info(f"Connection established to {database_folder_path + DATABASE_NAME}")
+        self.create_tables(database_folder_path)
 
-    def create_tables(self):
+    def create_tables(self, database_folder_path):
         """
-        Create tables in the database if needed, using the "data.sql" file that is found in the same path
+        Create tables in the database if needed, using the "products.sql" file that is found in the same path
+        :param database_folder_path: The folder location of the database files, should end with a slash
         """
-        # TODO change location of database.py and relevant files
         cursor: sqlite3.Cursor = self.conn.cursor()
         try:
-            with open("data.sql", "r") as sql_file:
+            with open(database_folder_path + "products.sql", "r") as sql_file:
                 sql_commands = sql_file.read()
                 try:
                     logging.info("Creating database tables if needed")
@@ -282,8 +285,8 @@ class DatabaseManager:
 
 
 if __name__ == '__main__':
-    print(f"{DatabaseManager.__name__}:\n{DatabaseManager.__doc__}")
-    for name, method in DatabaseManager.__dict__.items():
+    print(f"{ProductDatabaseManager.__name__}:\n{ProductDatabaseManager.__doc__}")
+    for name, method in ProductDatabaseManager.__dict__.items():
         if callable(method) and hasattr(method, '__doc__'):
             docstring = method.__doc__
             if docstring:
