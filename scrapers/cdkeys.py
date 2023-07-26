@@ -1,3 +1,4 @@
+import datetime
 import json
 import json
 import logging
@@ -6,7 +7,7 @@ import re
 import requests
 from bs4 import BeautifulSoup
 
-from common.product_info import ProductInfo
+from common.product_info import PriceInfo
 from common.scraper import validate_url, HEADERS, log_invalid_request, \
     log_url_request, log_price_invalid, log_price_found_from_request, Scraper, log_product_availability_from_request
 
@@ -73,7 +74,7 @@ class CDKeys(Scraper):
                 logging.error(f"The availability is not a valid json string: \n{stock[0].attrs['data-mage-init']}")
         return False
 
-    def get_product_info(self) -> ProductInfo | None:
+    def get_product_info(self) -> PriceInfo | None:
         """
         Scrape the CDkeys website to get the product info
         :return: The product info that was found from the URL, or None if no product information was found
@@ -91,7 +92,8 @@ class CDKeys(Scraper):
                     scrape_request.close()
                     product_price = self._parse_response_for_price(parsed_source)
                     product_availability = self._parse_response_for_availability(parsed_source)
-                    return ProductInfo(product_price, product_availability)
+                    if product_availability:
+                        return PriceInfo(product_price, self.url, datetime.date.today())
                 else:
                     log_invalid_request(scrape_request.status_code)
                     scrape_request.close()

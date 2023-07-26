@@ -1,27 +1,6 @@
 import datetime
 
 
-class ProductInfo:
-    """
-    Contains basic information for a product
-
-    Attributes:
-        availability (bool): True if the product is available, False otherwise
-        price (float): The price of the product
-    """
-    availability: bool
-    price: float
-
-    def __init__(self, price: float, availability: bool) -> None:
-        """
-        Initialize product info
-        :param price: The price of the product
-        :param availability: True if the product is available, false otherwise
-        """
-        self.availability = availability
-        self.price = price
-
-
 class PriceInfo:
     """
     Contains basic information for a product

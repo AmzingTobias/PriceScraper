@@ -2,9 +2,7 @@ import datetime
 import logging
 import sqlite3
 
-from common.product_info import PriceInfo, ProductInfo, date_to_string, string_to_date
-from common.scraper import validate_url
-from scrapers.cdkeys import CDKEYS_HOST_NAME, CDKeys
+from common.product_info import PriceInfo, date_to_string, string_to_date
 
 DATABASE_NAME = "products.db"
 PRODUCTS_TABLE_NAME = "Products"
@@ -53,6 +51,21 @@ class ProductDatabaseManager:
             logging.critical(f"Error executing sql command, file does not exist")
             self.__del__()
             raise SystemExit(f"{file_open_error}")
+
+    def get_product_name(self, product_id: int) -> str | None:
+        """
+        Get a products name from the database, using the products id
+        :param product_id: The ID of the product to get the name for
+        """
+        cur = self.conn.cursor()
+        cur.execute(f"SELECT Name FROM {PRODUCTS_TABLE_NAME} WHERE Id = ?", (product_id,))
+        result = cur.fetchone()
+        if len(result) > 0:
+            cur.close()
+            return result[0]
+        else:
+            cur.close()
+            return None
 
     def add_product(self, product_name: str) -> bool:
         """
@@ -179,7 +192,7 @@ class ProductDatabaseManager:
         Get the price for a product using a date
         :param product_id: The product to get the price for
         :param date_for_search: The date to get the price at
-        :return: The PriceInfo found from the datbase, or None if no price exists
+        :return: The PriceInfo found from the database, or None if no price exists
         """
         # Convert the date into a string for database lookup
         date_string_for_lookup = date_to_string(date_for_search)
@@ -247,37 +260,6 @@ class ProductDatabaseManager:
                 logging.warning(f"Could not commit to database: {operation_error}")
                 cur.close()
                 return False
-
-    # TODO move this out of the database manager
-    def _use_price_from_scrape(self, product_id: int,
-                               scrape_url: str, product_info: ProductInfo, date_for_scrape: datetime.date) -> None:
-        if product_info.availability:
-            current_price_for_product = self.get_price_for_product_with_date(product_id, date_for_scrape)
-            if current_price_for_product is not None:
-                if product_info.price < current_price_for_product.price:
-                    logging.info("Price found is lower than currently stored")
-                    self.add_price_for_product(product_id, product_info.price, scrape_url, date_for_scrape)
-                elif product_info.price == current_price_for_product.price:
-                    logging.info("Price found is the same as currently stored")
-                else:
-                    logging.info("Price found is higher than what is currently stored")
-            else:
-                logging.info("New price added to database for day")
-                self.add_price_for_product(product_id, product_info.price, scrape_url, date_for_scrape)
-
-    # TODO move this out of the database manager
-    def scrape_sites(self):
-        all_product_ids = self.get_all_product_ids()
-        for product_id in all_product_ids:
-            all_source_sites_for_product = self.get_all_source_sites(product_id)
-            for source_site in all_source_sites_for_product:
-                url = source_site[1]
-                if validate_url(url, CDKEYS_HOST_NAME):
-                    date_for_scrape = datetime.date.today()
-                    scraper = CDKeys(url)
-                    product_info = scraper.get_product_info()
-                    if product_info is not None:
-                        self._use_price_from_scrape(product_id, url, product_info, date_for_scrape)
 
     def __del__(self):
         logging.info("Closing connection to database")
