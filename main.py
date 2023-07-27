@@ -41,8 +41,8 @@ def notify_of_current_lowest_price(product_id: int,
     :param previous_price_info: The last lowest price that was found in the scrape
     :param historical_low_price: The lowest price that was ever found
     """
-    account_database = AccountDatabaseManager("database/")
     user_accounts_for_product = account_database.get_users_for_notifications_of_product(product_id)
+    account_database = AccountDatabaseManager(config_manager.database_filepath)
     discord_webhooks_for_product = [account_database.get_discord_webhooks_for_user(user.user_id)
                                     for user in user_accounts_for_product]
 
@@ -60,7 +60,7 @@ def scrape_sites():
     Scrape all sites for all products that exist in the database, and send out notifications for any price changes that
     are found
     """
-    product_database = ProductDatabaseManager("database/")
+    product_database = ProductDatabaseManager(config_manager.database_filepath)
     all_product_ids = product_database.get_all_product_ids()
     for product_id in all_product_ids:
         all_source_sites_for_product = product_database.get_all_source_sites(product_id)

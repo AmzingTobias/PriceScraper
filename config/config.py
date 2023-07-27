@@ -4,6 +4,7 @@ import logging
 CONFIG_FILE_PATH = "config.json"
 SCRAPER_INTERVAL_KEY = "scraper-interval"
 LOGGING_LEVEL_KEY = "logging-level"
+DATABASE_FILEPATH_KEY = "database-filepath"
 
 
 class Config:
@@ -14,10 +15,12 @@ class Config:
         scrape_interval (int): The amount of time in seconds that should take place between each scrape
         logging_level (int): The logging level to use
         config_filepath (str): The filepath to the config
+        database_filepath (str): The filepath to the database
     """
     scrape_interval: int
     logging_level: int
     config_filepath: str
+    database_filepath: str
 
     def __init__(self, config_path=CONFIG_FILE_PATH):
         """
@@ -29,6 +32,7 @@ class Config:
         # Default values for the config file
         self.scrape_interval = 0
         self.logging_level = logging.WARNING
+        self.database_filepath = ""
         self.raw_json = dict()
 
         try:
@@ -44,6 +48,9 @@ class Config:
         if LOGGING_LEVEL_KEY in self.raw_json:
             self.logging_level = self.raw_json[LOGGING_LEVEL_KEY]
 
+        if DATABASE_FILEPATH_KEY in self.raw_json:
+            self.database_filepath = self.raw_json[DATABASE_FILEPATH_KEY]
+
     def create_config_file(self) -> None:
         """
         Creates the config file with the default values
@@ -52,6 +59,7 @@ class Config:
             # Create the config file with the default values
             self.raw_json[SCRAPER_INTERVAL_KEY] = self.scrape_interval
             self.raw_json[LOGGING_LEVEL_KEY] = self.logging_level
+            self.raw_json[DATABASE_FILEPATH_KEY] = self.database_filepath
 
             json.dump(self.raw_json, json_file)
 
