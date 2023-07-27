@@ -41,8 +41,16 @@ def notify_of_current_lowest_price(product_id: int,
     :param previous_price_info: The last lowest price that was found in the scrape
     :param historical_low_price: The lowest price that was ever found
     """
-    user_accounts_for_product = account_database.get_users_for_notifications_of_product(product_id)
     account_database = AccountDatabaseManager(config_manager.database_filepath)
+    user_accounts_for_product = []
+    if current_lowest_price.price is not None and previous_price_info.price is not None:
+        if current_lowest_price.price == previous_price_info.price:
+            user_accounts_for_product = account_database.get_users_for_notifications_of_product(product_id, False)
+        else:
+            user_accounts_for_product = account_database.get_users_for_notifications_of_product(product_id)
+    else:
+        user_accounts_for_product = account_database.get_users_for_notifications_of_product(product_id)
+
     discord_webhooks_for_product = [account_database.get_discord_webhooks_for_user(user.user_id)
                                     for user in user_accounts_for_product]
 

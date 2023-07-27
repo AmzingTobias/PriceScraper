@@ -5,6 +5,7 @@ from database.database_manager import DatabaseManager
 USERS_TABLE = "Users"
 NOTIFICATIONS_TABLE = "Notifications"
 DISCORD_NOTIFICATION_TABLE = "Discord_webhooks"
+PRODUCT_NOTIFICATIONS_TABLE = "Product_notifications"
 
 
 class NotificationSettings:
@@ -40,12 +41,16 @@ class AccountDatabaseManager(DatabaseManager):
         """
         super().__init__(database_folder_path)
 
-    def get_users_for_notifications_of_product(self, product_id: int) -> list[NotificationSettings]:
+    def get_users_for_notifications_of_product(self, product_id: int, price_changed=True) -> list[NotificationSettings]:
         cur = self.conn.cursor()
-        sql_statement = f"SELECT Notifications.User_Id, Notifications.Enabled, Notifications.No_price_change_enabled " \
-                        f"FROM Notifications " \
-                        f"INNER JOIN Product_notifications ON Notifications.User_Id = Product_notifications.User_Id " \
-                        f"WHERE Product_notifications.Product_Id = ?"
+        sql_statement = f"SELECT {NOTIFICATIONS_TABLE}.User_Id, {NOTIFICATIONS_TABLE}.Enabled, " \
+                        f"{NOTIFICATIONS_TABLE}.No_price_change_enabled " \
+                        f"FROM {NOTIFICATIONS_TABLE} " \
+                        f"INNER JOIN {PRODUCT_NOTIFICATIONS_TABLE} ON " \
+                        f"{NOTIFICATIONS_TABLE}.User_Id = {PRODUCT_NOTIFICATIONS_TABLE}.User_Id " \
+                        f"WHERE {PRODUCT_NOTIFICATIONS_TABLE}.Product_Id = ?"
+        if not price_changed:
+            sql_statement += F" AND {NOTIFICATIONS_TABLE}.No_price_change_enabled = 1"
         cur.execute(sql_statement, (product_id,))
         result = cur.fetchall()
         cur.close()
