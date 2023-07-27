@@ -34,8 +34,12 @@ class Discord:
         self.webhook_urls = webhook_urls
         self.webhooks = DiscordWebhook.create_batch(urls=webhook_urls, rate_limit_retry=True)
 
-    def prepare_webhook(self, product_name: str, current_price_info: PriceInfo, previous_price: PriceInfo,
-                        historical_low_price: PriceInfo = PriceInfo(None, None, None)) -> None:
+    def prepare_webhook(self,
+                        product_name: str,
+                        current_price_info: PriceInfo,
+                        previous_price: PriceInfo,
+                        historical_low_price: PriceInfo = PriceInfo(None, None, None),
+                        product_image_link: None | str=None) -> None:
         """
         Creates the embed for the webhook
         :param product_name: The product name the embed is for
@@ -55,6 +59,9 @@ class Discord:
         embed = self._set_webhook_colour(embed, current_price_info.price, previous_price.price)
         # Set the footer note of the embed to show the historical low price
         embed = self._set_historical_low(embed, current_price_info.price, historical_low_price)
+
+        if product_image_link is not None:
+            embed.set_image(product_image_link)
 
         description_sent = False
         # Check a price exists for both the price and previous price

@@ -4,7 +4,6 @@ import logging
 CONFIG_FILE_PATH = "config.json"
 SCRAPER_INTERVAL_KEY = "scraper-interval"
 LOGGING_LEVEL_KEY = "logging-level"
-DISCORD_WEBHOOK_KEY = "discord-webhook-url"
 
 
 class Config:
@@ -14,12 +13,10 @@ class Config:
     Attributes:
         scrape_interval (int): The amount of time in seconds that should take place between each scrape
         logging_level (int): The logging level to use
-        discord_webhook_url (str): A Discord webhook URL that will be sent notifications
         config_filepath (str): The filepath to the config
     """
     scrape_interval: int
     logging_level: int
-    discord_webhook_url: str
     config_filepath: str
 
     def __init__(self, config_path=CONFIG_FILE_PATH):
@@ -32,7 +29,6 @@ class Config:
         # Default values for the config file
         self.scrape_interval = 0
         self.logging_level = logging.WARNING
-        self.discord_webhook_url = ""
         self.raw_json = dict()
 
         try:
@@ -48,9 +44,6 @@ class Config:
         if LOGGING_LEVEL_KEY in self.raw_json:
             self.logging_level = self.raw_json[LOGGING_LEVEL_KEY]
 
-        if DISCORD_WEBHOOK_KEY in self.raw_json:
-            self.discord_webhook_url = self.raw_json[DISCORD_WEBHOOK_KEY]
-
     def create_config_file(self) -> None:
         """
         Creates the config file with the default values
@@ -59,7 +52,6 @@ class Config:
             # Create the config file with the default values
             self.raw_json[SCRAPER_INTERVAL_KEY] = self.scrape_interval
             self.raw_json[LOGGING_LEVEL_KEY] = self.logging_level
-            self.raw_json[DISCORD_WEBHOOK_KEY] = self.discord_webhook_url
 
             json.dump(self.raw_json, json_file)
 
