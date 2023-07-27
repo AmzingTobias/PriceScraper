@@ -3,59 +3,32 @@ import logging
 import sqlite3
 
 from common.product_info import PriceInfo, date_to_string, string_to_date
+from database.database_manager import DatabaseManager
 
-DATABASE_NAME = "products.db"
 PRODUCTS_TABLE_NAME = "Products"
+IMAGES_TABLE_NAME = "Images"
 SOURCES_TABLE_NAME = "Sources"
 PRICES_TABLE_NAME = "Prices"
 
 
-class ProductDatabaseManager:
+class ProductDatabaseManager(DatabaseManager):
     """
     The Database manager for products that handles making requests to the SQL database
     Attributes:
         conn (sqlite3.Connection): The connection to the database
     """
-    conn: sqlite3.Connection
 
     def __init__(self, database_folder_path: str = ""):
         """
         :param database_folder_path: The folder location of the database files, should end with a slash
         """
-        # Connect to the database
-        self.conn = sqlite3.connect(database_folder_path + DATABASE_NAME)
-        # Ensure foreign key checks exist
-        self.conn.execute('PRAGMA foreign_keys = ON')
-        logging.info(f"Connection established to {database_folder_path + DATABASE_NAME}")
-        self.create_tables(database_folder_path)
-
-    def create_tables(self, database_folder_path):
-        """
-        Create tables in the database if needed, using the "products.sql" file that is found in the same path
-        :param database_folder_path: The folder location of the database files, should end with a slash
-        """
-        cursor: sqlite3.Cursor = self.conn.cursor()
-        try:
-            with open(database_folder_path + "products.sql", "r") as sql_file:
-                sql_commands = sql_file.read()
-                try:
-                    logging.info("Creating database tables if needed")
-                    # Will only create the tables if needed
-                    cursor.executescript(sql_commands)
-                    cursor.close()
-                except sqlite3.Error as sqlite_error:
-                    logging.critical(f"Error executing sql command: {sqlite_error}")
-                    self.__del__()
-                    raise SystemExit(f"Error executing sql command: {sqlite_error}")
-        except FileNotFoundError as file_open_error:
-            logging.critical(f"Error executing sql command, file does not exist")
-            self.__del__()
-            raise SystemExit(f"{file_open_error}")
+        super().__init__(database_folder_path)
 
     def get_product_name(self, product_id: int) -> str | None:
         """
         Get a products name from the database, using the products id
         :param product_id: The ID of the product to get the name for
+        :return The product name, or None if the product does not exist
         """
         cur = self.conn.cursor()
         cur.execute(f"SELECT Name FROM {PRODUCTS_TABLE_NAME} WHERE Id = ?", (product_id,))
@@ -90,6 +63,25 @@ class ProductDatabaseManager:
             logging.warning(f"Could not commit to database: {operation_error}")
             data_added = False
         return data_added
+
+    def get_product_image(self, product_id: int) -> str | None:
+        """
+        Get the image for a product
+        :param product_id: The product ID to get the image for
+        :return The link to the image, or None if no image exists
+        """
+        cur = self.conn.cursor()
+        sql_statement = f"SELECT {IMAGES_TABLE_NAME}.Image_link " \
+                        f"FROM {IMAGES_TABLE_NAME} " \
+                        f"JOIN {PRODUCTS_TABLE_NAME} ON {PRODUCTS_TABLE_NAME}.Image_Id = {IMAGES_TABLE_NAME}.Id " \
+                        f"WHERE {PRODUCTS_TABLE_NAME}.Id = ?"
+        cur.execute(sql_statement, (product_id,))
+        result = cur.fetchone()
+        cur.close()
+        if len(result) > 0:
+            return result[0]
+        else:
+            return None
 
     def add_product_sources(self, product_id: int, product_sources: list[str]) -> bool:
         """
@@ -184,7 +176,7 @@ class ProductDatabaseManager:
                                 for price in price_data]
         # Sort the list of prices by date
         price_info_converted_sorted = sorted(price_info_converted, key=lambda x: x.date)
-        logging.info(f"Total prices found for product {product_id}: {len(price_info_converted_sorted)}")
+        logging.info(f"Total prices found for in database for product {product_id}: {len(price_info_converted_sorted)}")
         return price_info_converted_sorted
 
     def get_price_for_product_with_date(self, product_id: int, date_for_search: datetime.date) -> PriceInfo | None:
@@ -226,7 +218,12 @@ class ProductDatabaseManager:
                                f"(SELECT {SOURCES_TABLE_NAME}.Id FROM {SOURCES_TABLE_NAME} " \
                                f"WHERE {SOURCES_TABLE_NAME}.Site_link = ? AND {SOURCES_TABLE_NAME}.Product_Id = ?) " \
                                f"WHERE Product_Id = ? AND Date = ?"
-        cur.execute(sql_update_statement, (price, source_url, product_id, product_id, date_string_for_lookup,))
+        try:
+            cur.execute(sql_update_statement, (price, source_url, product_id, product_id, date_string_for_lookup,))
+        except sqlite3.OperationalError as operation_error:
+            logging.warning(f"Could not commit to database: {operation_error}")
+            cur.close()
+            return False
         if cur.rowcount == 0:
             # Needs to be inserted
             sql_insert_statement = f"INSERT INTO {PRICES_TABLE_NAME} (Product_Id, Date, Price, Site_Id) " \
@@ -260,10 +257,6 @@ class ProductDatabaseManager:
                 logging.warning(f"Could not commit to database: {operation_error}")
                 cur.close()
                 return False
-
-    def __del__(self):
-        logging.info("Closing connection to database")
-        self.conn.close()
 
 
 if __name__ == '__main__':

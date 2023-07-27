@@ -5,6 +5,7 @@ import time
 from common.product_info import PriceInfo
 from common.scraper import validate_url
 from config.config import Config
+from database.accounts_database_manager import AccountDatabaseManager
 from database.product_database_manager import ProductDatabaseManager
 from notifiers.discord import Discord
 from scrapers.cdkeys import CDKEYS_HOST_NAME, CDKeys
@@ -26,19 +27,31 @@ def compare_price_info(price_one: PriceInfo | None,
     return price_one
 
 
-def notify_of_current_lowest_price(product_name: str,
+def notify_of_current_lowest_price(product_id: int,
+                                   product_name: str,
                                    current_lowest_price: PriceInfo,
                                    previous_price_info: PriceInfo,
-                                   historical_low_price: PriceInfo) -> None:
+                                   historical_low_price: PriceInfo,
+                                   product_image_url: None | str = None) -> None:
     """
     Notify everyone required of a price change
+    :param product_id: The ID of the product, from the database
     :param product_name: THe product name the price change was detected for
     :param current_lowest_price: The current lowest price that was found in the scrape
     :param previous_price_info: The last lowest price that was found in the scrape
     :param historical_low_price: The lowest price that was ever found
     """
-    discord_notifier = Discord([config_manager.discord_webhook_url])
-    discord_notifier.prepare_webhook(product_name, current_lowest_price, previous_price_info, historical_low_price)
+    account_database = AccountDatabaseManager("database/")
+    user_accounts_for_product = account_database.get_users_for_notifications_of_product(product_id)
+    discord_webhooks_for_product = [account_database.get_discord_webhooks_for_user(user.user_id)
+                                    for user in user_accounts_for_product]
+
+    discord_notifier = Discord(discord_webhooks_for_product)
+    discord_notifier.prepare_webhook(product_name,
+                                     current_lowest_price,
+                                     previous_price_info,
+                                     historical_low_price,
+                                     product_image_link=product_image_url)
     discord_notifier.send_webhook()
 
 
@@ -74,9 +87,12 @@ def scrape_sites():
 
             product_name = product_database.get_product_name(product_id)
             # Send notifications
-            notify_of_current_lowest_price(product_name, lowest_price_info_found, previous_price, historical_low_price)
+            product_image_link = product_database.get_product_image(product_id)
+            notify_of_current_lowest_price(product_id, product_name, lowest_price_info_found, previous_price,
+                                           historical_low_price, product_image_link)
         rest_time = random.randint(30, 600)
-        logging.debug(f"Waiting {rest_time} seconds before scraping for new product")
+        logging.info(f"Waiting {rest_time} seconds before scraping for new product")
+        time.sleep(rest_time)
 
 
 if __name__ == "__main__":
