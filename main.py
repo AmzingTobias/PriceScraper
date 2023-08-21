@@ -1,5 +1,6 @@
 import logging
 import random
+import sys
 import time
 
 from common.product_info import PriceInfo
@@ -10,7 +11,11 @@ from database.product_database_manager import ProductDatabaseManager
 from notifiers.discord import Discord
 from scrapers.cdkeys import CDKEYS_HOST_NAME, CDKeys
 
-config_manager = Config("config/config.json")
+config_path = "config//config.json"
+if len(sys.argv) > 1:
+    config_path = sys.argv[1]
+print(f"Using config file: {config_path}")
+config_manager = Config(config_path)
 
 
 def compare_price_info(price_one: PriceInfo | None,
@@ -98,7 +103,7 @@ def scrape_sites():
             product_image_link = product_database.get_product_image(product_id)
             notify_of_current_lowest_price(product_id, product_name, lowest_price_info_found, previous_price,
                                            historical_low_price, product_image_link)
-        rest_time = random.randint(30, 600)
+        rest_time = random.randint(20, 60)
         logging.info(f"Waiting {rest_time} seconds before scraping for new product")
         time.sleep(rest_time)
 

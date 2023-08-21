@@ -78,7 +78,8 @@ class Discord:
                     embed = self._set_no_price_change_description(embed, current_price_info.price)
                 else:
                     embed = self._set_price_increase_description(embed, current_price_info.price, previous_price.price)
-
+        elif current_price_info.price is not None:
+            embed = self._set_new_product_description(embed, current_price_info.price)
         # Add the embed to all webhooks
         for webhook in self.webhooks:
             webhook.add_embed(embed)
@@ -113,6 +114,15 @@ class Discord:
         """
         embed_description = f"**PRICE DECREASE**\n"
         embed_description = Discord._set_price_description(embed_description, current_price, previous_price, extra_text)
+        embed.set_description(embed_description)
+        return embed
+
+    @staticmethod
+    def _set_new_product_description(embed: DiscordEmbed, current_price: float, extra_text="") -> DiscordEmbed:
+        embed_description = f"**PRICE FOUND**\n"
+        embed_description += f"**£{current_price:.2f}**"
+        if extra_text != "":
+            embed_description += f"\n{extra_text}"
         embed.set_description(embed_description)
         return embed
 
@@ -194,7 +204,7 @@ class Discord:
         :param historical_low: The lowest all-time price that was found for the product
         :return: The embedded object that was supplied, with the footer added
         """
-        if historical_low.price is not None and historical_low.date is not None:
+        if historical_low is not None and historical_low.price is not None and historical_low.date is not None:
             historical_low_text = f"Historical low: £{historical_low.price:.2f}, which occurred on: " \
                                   f"{date_to_string(historical_low.date)}\n"
             historical_low_text += f"Difference of: "
