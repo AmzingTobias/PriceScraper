@@ -10,6 +10,7 @@ from database.accounts_database_manager import AccountDatabaseManager
 from database.product_database_manager import ProductDatabaseManager
 from notifiers.discord import Discord
 from scrapers.cdkeys import CDKEYS_HOST_NAME, CDKeys
+from scrapers.green_man_gaming import GREEN_MAN_GAMING_HOST_NAME, GreenManGaming
 
 config_path = "config//config.json"
 if len(sys.argv) > 1:
@@ -82,6 +83,10 @@ def scrape_sites():
             url = source_site[1]
             if validate_url(url, CDKEYS_HOST_NAME):
                 scraper = CDKeys(url)
+                product_info_found = scraper.get_product_info()
+                lowest_price_info_found = compare_price_info(lowest_price_info_found, product_info_found)
+            elif validate_url(url, GREEN_MAN_GAMING_HOST_NAME):
+                scraper = GreenManGaming(url)
                 product_info_found = scraper.get_product_info()
                 lowest_price_info_found = compare_price_info(lowest_price_info_found, product_info_found)
         if lowest_price_info_found is not None:
