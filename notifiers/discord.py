@@ -61,7 +61,8 @@ class Discord:
         embed = self._set_historical_low(embed, current_price_info.price, historical_low_price)
 
         if product_image_link is not None:
-            embed.set_image(product_image_link)
+            if product_image_link.startswith("http://") or product_image_link.startswith("https://"):
+                embed.set_image(product_image_link)
 
         description_sent = False
         # Check a price exists for both the price and previous price
