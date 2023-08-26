@@ -78,10 +78,10 @@ class ProductDatabaseManager(DatabaseManager):
         cur.execute(sql_statement, (product_id,))
         result = cur.fetchone()
         cur.close()
-        if len(result) > 0:
-            return result[0]
-        else:
-            return None
+        if result is not None:
+            if len(result) > 0:
+                return result[0]
+        return None
 
     def add_product_sources(self, product_id: int, product_sources: list[str]) -> bool:
         """
