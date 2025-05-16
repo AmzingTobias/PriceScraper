@@ -1,0 +1,6 @@
+{
+    "image_save_path": "",
+    "delay_between_scrape_seconds": 2,
+    "web_server_path_for_images": "",
+    "database_path": ""
+}

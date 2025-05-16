@@ -1,0 +1,17 @@
+[package]
+name = "price-scraping"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+scraper = "0.17"
+regex = "1"
+log = "0.4"
+reqwest = { version = "0.11", features = ["blocking", "json"] }
+rusqlite = { version = "0.35.0", features = ["bundled"] }
+uuid = { version = "1.16.0", features = ["v4"] }
+infer = "0.19.0"
+discord-webhook-rs = "1.0.5"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+chrono = "0.4.41"
