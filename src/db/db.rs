@@ -233,7 +233,7 @@ fn save_imgae_locally(image: &Image, root_save_path: &PathBuf) -> Option<String>
 pub fn get_image_for_product(conn: &mut Connection, product_id: u32) -> Option<String> {
     // First retrieve the most recent price for the product
     let image_link: Result<String, rusqlite::Error> = conn.query_row(
-        "SELECT Image_link FROM Images LEFT JOIN Products ON Products.Image_Id = Images.Id WHERE Products.Id = ?1",
+        "SELECT Image_link FROM Images JOIN Products ON Products.Image_Id = Images.Id WHERE Products.Id = ?1",
         [product_id],
         |row| row.get(0),
     );

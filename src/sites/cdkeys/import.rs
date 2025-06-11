@@ -72,26 +72,23 @@ fn get_html_document(url: &str) -> Result<Html, String> {
 }
 
 fn get_title(document: &Html) -> Result<String, String> {
-    let page_title_selector =
-        Selector::parse(".page-title").map_err(|e| format!("Selector parse error: {}", e))?;
+    let selector = Selector::parse(r#"meta[property="og:title"]"#)
+        .map_err(|e| format!("Title (Meta) HTML element could not be found: {}", e))?;
 
-    let mut elements = document.select(&page_title_selector);
-
-    let element = elements
-        .next()
-        .ok_or_else(|| "No element with class 'page-title' found".to_string())?;
-
-    let title = element
-        .value()
-        .attr("data-text")
-        .ok_or_else(|| "Attribute 'data-text' not found".to_string())?;
-
-    Ok(title.to_string())
+    if let Some(element) = document.select(&selector).next() {
+        if let Some(title) = element.value().attr("content") {
+            Ok(title.to_string())
+        } else {
+            Err(format!("Title attribute missing in meta tag'",))
+        }
+    } else {
+        Err(format!("Title could not be found in the HTML"))
+    }
 }
 
 fn get_description(document: &Html) -> Result<String, String> {
-    let description_selector =
-        Selector::parse(".description").map_err(|e| format!("Selector parse error: {}", e))?;
+    let description_selector = Selector::parse(".text.product-description")
+        .map_err(|e| format!("Selector parse error: {}", e))?;
 
     if let Some(div_element) = document.select(&description_selector).next() {
         let p_selector =
@@ -162,7 +159,7 @@ fn get_platform(document: &Html) -> Option<String> {
 }
 
 fn get_image_src(document: &Html) -> Option<String> {
-    let selector = Selector::parse("img.gallery-placeholder__image").unwrap();
+    let selector = Selector::parse("#galleryImage").unwrap();
 
     // Try to extract the platform (inner text) and return it
     for element in document.select(&selector) {
