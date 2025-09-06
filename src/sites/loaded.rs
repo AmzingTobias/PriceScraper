@@ -1,4 +1,4 @@
 mod import;
 mod scrape;
 
-pub struct CDKeys;
+pub struct Loaded;

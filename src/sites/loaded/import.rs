@@ -6,9 +6,9 @@ use scraper::{Html, Selector};
 
 use crate::sites::{GameImport, Image, Importer};
 
-use super::CDKeys;
+use super::Loaded;
 
-impl Importer for CDKeys {
+impl Importer for Loaded {
     fn import(url: &str) -> Result<GameImport, String> {
         let document = get_html_document(url)?;
 

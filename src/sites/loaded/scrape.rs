@@ -8,9 +8,9 @@ use scraper::{Html, Selector};
 
 use crate::{PriceInfo, sites::Scraper};
 
-use super::CDKeys;
+use super::Loaded;
 
-impl Scraper for CDKeys {
+impl Scraper for Loaded {
     fn scrape(url: &str) -> Result<PriceInfo, String> {
         let mut headers = HeaderMap::new();
         headers.insert(

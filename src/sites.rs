@@ -1,4 +1,4 @@
-pub mod cdkeys;
+pub mod loaded;
 
 use reqwest::Url;
 
@@ -29,7 +29,7 @@ pub trait Importer {
 pub fn scrape(url: &str) -> Result<PriceInfo, String> {
     let hostname = get_hostname(url);
     match hostname {
-        Ok(host) if host == "www.cdkeys.com" => cdkeys::CDKeys::scrape(url),
+        Ok(host) if host == "www.loaded.com" => loaded::Loaded::scrape(url),
         Ok(other) => Err(format!("Unsupported URL for scrape: {}", other)),
         Err(e) => Err(e),
     }
@@ -38,7 +38,7 @@ pub fn scrape(url: &str) -> Result<PriceInfo, String> {
 pub fn import(url: &str) -> Result<GameImport, String> {
     let hostname = get_hostname(url);
     match hostname {
-        Ok(host) if host == "www.cdkeys.com" => cdkeys::CDKeys::import(url),
+        Ok(host) if host == "www.loaded.com" => loaded::Loaded::import(url),
         Ok(other) => Err(format!("Unsupported URL for import: {}", other)),
         Err(e) => Err(e),
     }
