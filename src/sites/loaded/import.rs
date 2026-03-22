@@ -75,7 +75,7 @@ fn get_title(document: &Html) -> Result<String, String> {
         if let Some(title) = element.value().attr("content") {
             Ok(title.to_string())
         } else {
-            Err(format!("Title attribute missing in meta tag'",))
+            Err(format!("Title attribute missing in meta tag"))
         }
     } else {
         Err(format!("Title could not be found in the HTML"))
@@ -110,8 +110,7 @@ fn get_description(document: &Html) -> Result<String, String> {
 
 fn get_edition(document: &Html) -> Option<String> {
     // Select the div with the specified class
-    let div_selector =
-        Selector::parse(&format!("div.{}", "product-info-selection_editions")).ok()?;
+    let div_selector = Selector::parse("div.product-info-selection_editions").ok()?;
     let select_selector = Selector::parse("select").ok()?;
     let option_selector = Selector::parse("option").ok()?;
 
@@ -124,7 +123,7 @@ fn get_edition(document: &Html) -> Option<String> {
     for option in select.select(&option_selector) {
         let el = option.value();
         if el.attr("selected").is_some() {
-            return Some(option.text().collect::<Vec<_>>().join(" "));
+            return Some(option.text().collect::<Vec<_>>().join(" ").trim().to_string());
         }
     }
 
@@ -132,13 +131,13 @@ fn get_edition(document: &Html) -> Option<String> {
     select
         .select(&option_selector)
         .next()
-        .and_then(|o| Some(o.text().collect::<Vec<_>>().join(" ").trim().to_string()))
+        .map(|o| o.text().collect::<Vec<_>>().join(" ").trim().to_string())
 }
 
 fn get_platform(document: &Html) -> Option<String> {
     // Using the full class value for specificity
     let selector =
-        Selector::parse("div.product.attribute-icon.attribute.platforms .value").unwrap();
+        Selector::parse("div.product.attribute-icon.attribute.platforms .value").ok()?;
 
     // Try to extract the platform (inner text) and return it
     for element in document.select(&selector) {
@@ -155,18 +154,13 @@ fn get_platform(document: &Html) -> Option<String> {
 }
 
 fn get_image_src(document: &Html) -> Option<String> {
-    let selector = Selector::parse("#galleryImage").unwrap();
+    let selector = Selector::parse("#galleryImage").ok()?;
 
-    // Try to extract the platform (inner text) and return it
-    for element in document.select(&selector) {
-        let image = element.value().attr("src");
-        return match image {
-            Some(src) => Some(src.to_string()),
-            None => None,
-        };
-    }
-
-    None // If no platform is found, return None
+    document
+        .select(&selector)
+        .next()
+        .and_then(|el| el.value().attr("src"))
+        .map(|src| src.to_string())
 }
 
 fn download_image(image_src: String) -> Result<Image, String> {

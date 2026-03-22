@@ -239,6 +239,7 @@ pub fn get_image_for_product(conn: &mut Connection, product_id: u32) -> Option<S
     );
     match image_link {
         Ok(image_link) => Some(image_link),
+        Err(rusqlite::Error::QueryReturnedNoRows) => None,
         Err(err) => {
             log::warn!(
                 "Error fetching image for product: {}, with error: {}",
@@ -357,8 +358,9 @@ pub fn get_historical_low_for_product(conn: &Connection, product_id: u32) -> Opt
     );
     match historical_low {
         Ok(historical_low) => Some(historical_low),
+        Err(rusqlite::Error::QueryReturnedNoRows) => None,
         Err(sql_error) => {
-            log::warn!("{sql_error}");
+            log::warn!("Error fetching historical low for product {product_id}: {sql_error}");
             None
         }
     }

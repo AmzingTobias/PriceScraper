@@ -54,7 +54,7 @@ fn load_config() -> Config {
 
 fn main() {
     log::set_logger(&logger::LOGGER)
-        .map(|()| log::set_max_level(log::LevelFilter::Trace))
+        .map(|()| log::set_max_level(log::LevelFilter::Info))
         .expect("Failed to initialize logger");
 
     let config = load_config();
