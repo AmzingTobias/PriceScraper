@@ -1,3 +1,5 @@
+use std::process::Command;
+
 use reqwest::{
     blocking::Client,
     header::{HeaderMap, USER_AGENT},
@@ -45,28 +47,22 @@ impl Importer for Loaded {
 }
 
 fn get_html_document(url: &str) -> Result<Html, String> {
-    let mut headers = HeaderMap::new();
-    headers.insert(
-        USER_AGENT,
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 \
-             (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36"
-            .parse()
-            .map_err(|e| format!("Header parse error: {}", e))?,
-    );
+    let output = Command::new("node")
+        .arg("/home/ubuntu/PriceScraper/playwright/fetch.js")
+        .arg(url)
+        .env("DISPLAY", ":99")
+        .output()
+        .map_err(|e| format!("Failed to run Playwright: {}", e))?;
 
-    let client = Client::builder()
-        .default_headers(headers)
-        .build()
-        .map_err(|e| format!("Client build error: {}", e))?;
+    if !output.status.success() {
+        return Err(format!(
+            "Playwright exited with error: {}",
+            String::from_utf8_lossy(&output.stderr)
+        ));
+    }
 
-    let response = client
-        .get(url)
-        .send()
-        .map_err(|e| format!("Request error: {}", e))?;
-
-    let html_content = response
-        .text()
-        .map_err(|e| format!("Error reading response text: {}", e))?;
+    let html_content = String::from_utf8(output.stdout)
+        .map_err(|e| format!("Invalid UTF-8 from Playwright: {}", e))?;
 
     Ok(Html::parse_document(&html_content))
 }
