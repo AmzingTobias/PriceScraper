@@ -1,3 +1,4 @@
 /target
 images/
 config.json
+playwright/node_modules/
