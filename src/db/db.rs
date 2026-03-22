@@ -212,6 +212,8 @@ fn save_image_locally(image: &Image, root_save_path: &PathBuf) -> Option<String>
     let image_filename = format!("{}.{}", image_id, image.extension);
     // Create the complete path the image will be saved to
     let image_file_path = Path::new(root_save_path).join(&image_filename);
+    log::info!("Saving image to: {}", image_file_path.display());
+
     // Create a file at the given path
     match File::create(&image_file_path) {
         // Write the image bytes to the created file
@@ -219,12 +221,12 @@ fn save_image_locally(image: &Image, root_save_path: &PathBuf) -> Option<String>
             // If all okay, return the file name that was used for the image
             Ok(_) => Some(image_filename),
             Err(err) => {
-                log::error!("Error writing image to file: {}", err);
+                log::error!("Error writing image to: {}: {}", image_file_path.display(), err);
                 None
             }
         },
         Err(err) => {
-            log::error!("Error creating image file: {}", err);
+            log::error!("Error creating image file at: {}: {}", image_file_path.display(), err);
             None
         }
     }
