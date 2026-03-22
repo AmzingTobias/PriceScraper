@@ -40,10 +40,13 @@ fn load_config() -> Config {
             let config_data = fs::read_to_string(&config_path).expect("Failed to read config file");
             let config: Config =
                 serde_json::from_str(&config_data).expect("Config file cannot be parsed");
+            log::info!("Config loaded from: {}", config_path);
             config
         }
         Err(_) => {
-            log::warn!("Config value not set, using default config");
+            log::warn!(
+                "PRICESCRAPER_CONFIG_PATH not set, using default config (db: prices.db, delay: 2s)"
+            );
             default_config
         }
     }
@@ -68,7 +71,7 @@ fn main() {
                         scrape_all_sources(&mut conn, &config);
                     }
                     "import" => {
-                        let import_result = import_from_argumnet(&mut conn, &args, &config);
+                        let import_result = import_from_argument(&mut conn, &args, &config);
                         let _ = import_result.inspect_err(|err| {
                             log::error!("{err}");
                         });
@@ -132,7 +135,7 @@ fn scrape_source(conn: &mut Connection, source: &Sources, config: &Config) -> Re
                 &mut price_found,
                 &historical_low_price,
             )
-            .unwrap();
+            .map_err(|e| e.to_string())?;
 
             // Get list of users who need to be informed
             match notification_type {
@@ -142,7 +145,8 @@ fn scrape_source(conn: &mut Connection, source: &Sources, config: &Config) -> Re
                 | notifications::Notifications::HistoricalLow => {
                     // Inform users via discord webhook
                     log::info!("Price found is different, sending notifications to users");
-                    let webhooks = get_webhooks_for_notify(conn, source.product_id).unwrap();
+                    let webhooks = get_webhooks_for_notify(conn, source.product_id)
+                        .map_err(|e| e.to_string())?;
                     let image_file_name = get_image_for_product(conn, source.product_id);
                     webhooks.iter().for_each(|webhook_url| {
                         match discord::send_webhook(
@@ -173,7 +177,7 @@ fn scrape_source(conn: &mut Connection, source: &Sources, config: &Config) -> Re
     }
 }
 
-fn import_from_argumnet(
+fn import_from_argument(
     conn: &mut Connection,
     args: &[String],
     config: &Config,

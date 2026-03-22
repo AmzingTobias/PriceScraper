@@ -51,10 +51,7 @@ fn get_description(notification_type: &Notifications, price_info: &PriceInfo) ->
                     get_difference_as_percentage(price_info.price, old_price)
                 )
             } else {
-                format!(
-                    "**PRICE {}**\n**£{:.2}**",
-                    difference_type, price_info.price
-                )
+                format!("{}\n**£{:.2}**", difference_type, price_info.price)
             }
         }
         Notifications::FirstPrice => format!("**PRICE FOUND**\n£{:.2}", price_info.price),

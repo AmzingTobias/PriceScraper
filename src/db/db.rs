@@ -14,7 +14,7 @@ use crate::{
 };
 
 pub fn init_db(conn: &mut Connection) -> Result<(), Error> {
-    let transaction = conn.transaction().unwrap();
+    let transaction = conn.transaction()?;
     transaction.execute(
         "CREATE TABLE IF NOT EXISTS 'Sources' (
         'Id'	INTEGER NOT NULL UNIQUE,
@@ -205,7 +205,7 @@ pub fn get_sources(conn: &Connection) -> Result<Vec<Sources>, Error> {
     return Ok(sources);
 }
 
-fn save_imgae_locally(image: &Image, root_save_path: &PathBuf) -> Option<String> {
+fn save_image_locally(image: &Image, root_save_path: &PathBuf) -> Option<String> {
     // Generate a random UUID for image name
     let image_id = Uuid::new_v4();
     // Append name with extension
@@ -264,7 +264,7 @@ pub fn add_game(
     // If there is an image to save
     if let Some(image) = &import_data.image {
         // Save image to the file system
-        image_file_name = save_imgae_locally(image, image_save_path);
+        image_file_name = save_image_locally(image, image_save_path);
         match &image_file_name {
             // If the image was saved to the file system, insert these details to the database
             Some(file_name) => {

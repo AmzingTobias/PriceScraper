@@ -5,7 +5,7 @@ pub struct StdSplitLogger;
 
 impl Log for StdSplitLogger {
     fn enabled(&self, metadata: &Metadata) -> bool {
-        metadata.level() <= Level::Info
+        metadata.level() <= Level::Trace
     }
 
     fn log(&self, record: &Record) {

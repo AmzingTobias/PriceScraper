@@ -15,10 +15,13 @@ impl Scraper for Loaded {
             .arg(url)
             .env("DISPLAY", ":99")
             .output()
-            .expect("Failed to run Playwright");
+            .map_err(|e| format!("Failed to run Playwright: {}", e))?;
 
         if !output.status.success() {
-            return Err(String::from_utf8_lossy(&output.stderr).to_string());
+            return Err(format!(
+                "Playwright exited with error: {}",
+                String::from_utf8_lossy(&output.stderr)
+            ));
         }
 
         let html_content = String::from_utf8(output.stdout)
